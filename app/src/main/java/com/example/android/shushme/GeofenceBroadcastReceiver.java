@@ -8,6 +8,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.media.AudioManager;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 
@@ -54,7 +56,14 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
         if (notificationManager != null && (Build.VERSION.SDK_INT < 24 || (
                 Build.VERSION.SDK_INT >= 24 && !notificationManager.isNotificationPolicyAccessGranted()))) {
             AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-            audioManager.setRingerMode(mode);
+            if (audioManager != null) {
+                try{
+                    audioManager.setRingerMode(mode);
+                } catch (SecurityException securityException){
+                    Log.e(TAG, "setRingerMode: "+securityException.getMessage());
+                }
+
+            }
         }
         if (notificationManager != null) {
             notificationManager.notify(0, sendNotification(context, transitionType));
@@ -72,6 +81,9 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
                     .setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_volume_up_white_24dp))
                     .setContentTitle(context.getString(R.string.back_to_normal));
         }
+        builder.setVibrate( new long[]{1000, 1000, 1000, 1000, 1000});
+        Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        builder.setSound(alarmSound);
         return builder.build();
     }
 }
